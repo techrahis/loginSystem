@@ -5,12 +5,14 @@ const User = require('../models/firebase')
 const jwt = require('jsonwebtoken');
 require('dotenv').config()
 var KEY = process.env.KEY;
-var cors = require('cors')
+var cors = require('cors');
+// const { urlencoded } = require('body-parser');
 router.use(cors())
-var urlencodedParser = bodyParser.urlencoded({ extended: false })
+router.use(bodyParser.json())
+var urlencodedParser = bodyParser.urlencoded({ extended: true })
 
-router.post('/signup',  urlencodedParser, async (req, res) => {
-   const {username, fname, lname, email, phone, password} = req.query; //getting data by object destructuring
+router.post('/signup', urlencodedParser, async (req, res) => {
+   const {username, fname, lname, email, phone, password} = req.body; //getting data by object destructuring
    if (!username || !fname || !lname || !email || !phone || !password) { 
       return res.status(422).json({ error: "Plz fill all the parameters" })
    }
@@ -25,7 +27,7 @@ router.post('/signup',  urlencodedParser, async (req, res) => {
         token = await User.storedata(username, fname, lname, email, phone, password);
         res.json({
          cookie: token,
-         message: "user signin sucessfully" })
+         message: "user signup sucessfully" })
       }
    } catch (error) {
       res.json(error);
@@ -34,8 +36,8 @@ router.post('/signup',  urlencodedParser, async (req, res) => {
    
 router.post("/signin", urlencodedParser, async (req, res) => {
       try {
-         const username = req.query.username;
-         const password = req.query.password;
+         const username = req.body.username;
+         const password = req.body.password;
 
          if (!username || !password) {
             return res.status(400).json({ error: "Plz fill the parameters" })
@@ -59,8 +61,8 @@ router.post("/signin", urlencodedParser, async (req, res) => {
       }
    })
 
- router.get('/authenticate', urlencodedParser, async (req,res)=>{
-   const token = req.query.cookie;
+ router.post('/authenticate', urlencodedParser, async (req,res)=>{
+   const token = req.body.cookie;
    try {
       const verifyToken = jwt.verify(token, KEY);
 
