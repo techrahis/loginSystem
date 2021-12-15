@@ -6,31 +6,30 @@ const jwt = require('jsonwebtoken');
 require('dotenv').config()
 var KEY = process.env.KEY;
 var cors = require('cors');
-// const { urlencoded } = require('body-parser');
 router.use(cors())
 router.use(bodyParser.json())
 var urlencodedParser = bodyParser.urlencoded({ extended: true })
 
 router.post('/signup', urlencodedParser, async (req, res) => {
-   const {username, fname, lname, email, phone, password} = req.body; //getting data by object destructuring
+   const {username, fname, lname, email, phone, password} = req.body;
    if (!username || !fname || !lname || !email || !phone || !password) { 
-      return res.status(422).json({ error: "Plz fill all the parameters" })
+      return res.status(400).json({ error: "Plz fill all the parameters" })
    }
    
    try {
       const userExist = await User.findone(username)
 
       if (userExist) {
-         return res.status(422).json({ error: "Username already exists" })
+         return res.status(400).json({ error: "Username already exists" })
       }
       else {
         token = await User.storedata(username, fname, lname, email, phone, password);
-        res.json({
+        res.status(200).json({
          cookie: token,
-         message: "user signup sucessfully" })
+         message: "User signup sucessfully" })
       }
    } catch (error) {
-      res.json(error);
+      res.status(400).json(error);
    }
 })
    
@@ -46,10 +45,10 @@ router.post("/signin", urlencodedParser, async (req, res) => {
          if (userLogin) {
             const token = await User.signin(username, password);   
             if (!token) {
-               res.status(400).json({ message: "Invalid Credentials " })
+               res.status(400).json({ error: "Invalid Credentials " })
             }
             else {
-               res.json({
+               res.status(200).json({
                   cookie: token,
                   message: "User signin sucessfully" })
             }
@@ -57,12 +56,15 @@ router.post("/signin", urlencodedParser, async (req, res) => {
             res.status(400).json({ error: "Invalid Credentials" })
          }
       } catch (error) {
-         res.json(error);
+         res.status(400).json(error);
       }
    })
 
  router.post('/authenticate', urlencodedParser, async (req,res)=>{
    const token = req.body.cookie;
+   if (!token) {
+      return res.status(400).json({ error: "Plz fill the parameters" })
+   }
    try {
       const verifyToken = jwt.verify(token, KEY);
 
@@ -73,11 +75,10 @@ router.post("/signin", urlencodedParser, async (req, res) => {
       else{
          const usn = verifyToken.username;
          const info = await User.info(usn);
-         res.send(JSON.stringify(info));
+         res.status(200).send(JSON.stringify(info));
       }
   } catch (error) {
-      res.status(401).send('Unauthorized: No token provided')
-      console.log(error);      
+      res.status(400).json({error: "Unauthorized"})    
   } 
 });
 module.exports = router;

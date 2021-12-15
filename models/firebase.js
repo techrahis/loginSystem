@@ -35,7 +35,7 @@ async function signin(username, password) {
   const userRef = db.collection('users').doc(username);
   const doc = await userRef.get();
   if (!doc.exists) {
-    console.log('No such document!');
+    return 0
   } 
   else {
       if(password == doc.data().password){
@@ -53,7 +53,7 @@ async function signin(username, password) {
        return(otoken);
       }
     else
-      return("login unsuccessful")
+      return 0
   }
 }
 
